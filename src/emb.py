@@ -43,7 +43,7 @@ def para_ul_random_walk(city, model_name, ulist, ul_graph, lu_graph, walk_len, w
     '''
 
     core_num = mp.cpu_count()
-    print core_num
+    print(core_num)
     # do not use shared memory
     Parallel(n_jobs = core_num)(delayed(ul_random_walk_core)(\
         city, model_name, u, ul_graph, lu_graph, walk_len, walk_times) for u in ulist)
@@ -81,7 +81,7 @@ def ul_random_walk_core(city, model_name, start_u, ul_graph, lu_graph, walk_len,
             else: temp_walk[:, j+1] = next_u
 
         pd.DataFrame(temp_walk).to_csv('dataset/'+city+'/emb/'+\
-                                       city+'_'+model_name+'.walk',\
+                                       city+'_'+model_name+'.walk',
                                        header=None, mode='a', index=False)
 
 def emb_train(city, model_name, walk_len=100, walk_times=20, num_features=128):
@@ -95,14 +95,15 @@ def emb_train(city, model_name, walk_len=100, walk_times=20, num_features=128):
     Returns:
     '''
 
-    walks = pd.read_csv('dataset/'+city+'/emb/'+city+'_'+model_name+'.walk',\
+    walks = pd.read_csv('dataset/'+city+'/emb/'+city+'_'+model_name+'.walk',
                         header=None, error_bad_lines=False)
 
     walks = walks.loc[np.random.permutation(len(walks))]
     walks = walks.reset_index(drop=True)
     walks = walks.applymap(str) # gensim only accept list of strings
     
-    print 'walk_len', walk_len, 'walk_times', walk_times, 'num_features', num_features
+    print('walk_len', walk_len, 'walk_times', walk_times, 'num_features',
+          num_features)
 
     min_word_count = 10
     num_workers = mp.cpu_count()
@@ -112,10 +113,10 @@ def emb_train(city, model_name, walk_len=100, walk_times=20, num_features=128):
     # gensim does not support numpy array, thus, walks.tolist()
     walks = walks.groupby(0).head(walk_times).values[:,:walk_len].tolist()
 
-    emb = word2vec.Word2Vec(walks,\
-                            workers=num_workers,\
-                            size=num_features, min_count=min_word_count,\
+    emb = word2vec.Word2Vec(walks,
+                            workers=num_workers,
+                            size=num_features, min_count=min_word_count,
                             window=context, sample=downsampling)
-    print 'training done'
+    print('training done')
     emb.wv.save_word2vec_format('dataset/'+city+'/emb/'+city+'_'+model_name+'_'+\
                                 str(int(walk_len))+'_'+str(int(walk_times))+'_'+str(int(num_features))+'.emb')

@@ -13,18 +13,18 @@ checkin, friends = data_process(city, cicnt)
 ul_graph, lu_graph = ul_graph_build(checkin, 'locid')
 
 model_name = str(cicnt) + '_locid'
-print model_name
+print(model_name)
 
 walk_len, walk_times = 100, 20 # maximal 100 walk_len, 20 walk_times
 
-print 'walking'
-para_ul_random_walk(city, model_name, checkin.uid.unique(), ul_graph, lu_graph,\
+print('walking')
+para_ul_random_walk(city, model_name, checkin.uid.unique(), ul_graph, lu_graph,
                     walk_len, walk_times)
-print 'walk done'
+print('walk done')
 
-print 'emb training'
+print('emb training')
 emb_train(city, model_name)
-print 'emb training done'
+print('emb training done')
 
 feature_construct(city, model_name, friends)
 unsuper_friends_predict(city, model_name)
