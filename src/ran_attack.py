@@ -6,7 +6,7 @@ from process import folder_setup, data_process
 from emb import ul_graph_build, para_ul_random_walk, emb_train
 from predict import feature_construct, unsuper_friends_predict
 
-city = "Brightkite"# ny la london
+city = "Gowalla"# ny la london Gowalla Brightkite
 cicnt = 20
 
 folder_setup(city)

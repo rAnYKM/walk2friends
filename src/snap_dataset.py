@@ -63,8 +63,14 @@ def gen_w2f_dataset(name, active_threshold, granularity):
     print(new_table)
 
     user_list = pd.unique(new_table['user'])
-    new_edges = [{'u1': e[0], 'u2': e[1]} for e in edges
-                 if e[0] in user_list and e[1] in user_list]
+    # new_edges = [{'u1': e[0], 'u2': e[1]} for e in edges
+    #              if e[0] in user_list and e[1] in user_list]
+
+    g = nx.DiGraph()
+    g.add_edges_from(edges)
+    sub = g.subgraph(user_list)
+    new_edges = [{'u1': e[0], 'u2': e[1]} for e in sub.edges()]
+
     edge_table = pd.DataFrame(new_edges)
     new_table.rename(columns={'user': 'uid', 'loc': 'locid'}, inplace=True)
     new_table.to_csv('dataset/%s_%d.checkin' % (name, active_threshold))
@@ -79,8 +85,8 @@ def remap_locid(checkin_file):
     locs = pd.unique(table['locid'])
     ind = {loc: i for i, loc in enumerate(locs)}
     table['locid'] = table.apply(lambda x: ind[x['locid']], axis=1)
-    table.to_csv('dataset/%s_2.checkin')
+    table.to_csv('dataset/%s_2.checkin' % checkin_file)
 
 
-# gen_w2f_dataset(SNAP_DATASET_NAMES[0], 20, 0.01)
-remap_locid("Brightkite_20")
+gen_w2f_dataset(SNAP_DATASET_NAMES[1], 20, 0.01)
+remap_locid("Gowalla_20")
