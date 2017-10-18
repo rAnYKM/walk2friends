@@ -36,7 +36,7 @@ def para_hiding(city, defense_name, checkin, ratio):
     pd.DataFrame([checkin.columns]).to_csv('dataset/'+city+'/defense/'+\
                 city+'_'+defense_name+'.checkin', index=False, header=None)
     core_num = mp.cpu_count()
-    print core_num
+    print(core_num)
 
     Parallel(n_jobs = core_num)(delayed(hiding_core)(\
         city, defense_name, checkin.loc[checkin.uid==u], ratio) for u in checkin.uid.unique())
@@ -110,7 +110,7 @@ def para_replace(city, defense_name, checkin, ratio, step):
     ul_graph, lu_graph = ul_graph_build(checkin, 'locid')
 
     core_num = mp.cpu_count()
-    print core_num
+    print(core_num)
 
     Parallel(n_jobs = core_num)(delayed(replace_core)(\
         city, defense_name, checkin.loc[checkin.uid==u], ul_graph, lu_graph, ratio, step) for u in checkin.uid.unique())
