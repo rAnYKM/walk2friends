@@ -20,8 +20,8 @@ print(model_name)
 walk_len, walk_times = 100, 20 # maximal 100 walk_len, 20 walk_times
 
 print('walking')
-para_ul_random_walk(city, model_name, checkin.uid.unique(), ul_graph, lu_graph,
-                    walk_len, walk_times)
+#para_ul_random_walk(city, model_name, checkin.uid.unique(), ul_graph, lu_graph,
+#                    walk_len, walk_times)
 print('walk done')
 
 print('emb training')

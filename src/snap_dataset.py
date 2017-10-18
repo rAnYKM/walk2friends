@@ -88,5 +88,17 @@ def remap_locid(checkin_file):
     table.to_csv('dataset/%s_2.checkin' % checkin_file)
 
 
-gen_w2f_dataset(SNAP_DATASET_NAMES[1], 20, 0.01)
-remap_locid("Gowalla_20")
+def dataset_summary(name):
+    checkin = pd.read_csv('dataset/%s_20.checkin' % name, index_col=0)
+    user_num = pd.unique(checkin['uid'])
+    loc_num = pd.unique(checkin['locid'])
+    total_check = checkin.shape
+    print(name, len(user_num), len(loc_num), total_check)
+    friends = pd.read_csv('dataset/%s_20.friends' % name)
+    total_link = friends.shape
+    print(total_link)
+
+
+# gen_w2f_dataset(SNAP_DATASET_NAMES[1], 20, 0.01)
+# remap_locid("Gowalla_20")
+dataset_summary(SNAP_DATASET_NAMES[0])
