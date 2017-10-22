@@ -1,7 +1,7 @@
 import sys
 
 from process import folder_setup, data_process
-from defense import para_hiding
+from defense import para_hiding, para_replace
 from emb import ul_graph_build, para_ul_random_walk, emb_train
 from predict import feature_construct, unsuper_friends_predict
 
@@ -44,4 +44,46 @@ def single_run(city, cicnt, ratio):
     unsuper_friends_predict(city, model_name)
 
 
-multi_run('Brightkite', 20, [10, 30, 50, 70, 90])
+def multi_replace(city, cicnt, ratios, steps, fail_to_continue):
+    flag = fail_to_continue
+    for step in steps:
+        for rate in ratios:
+            single_replace(city, cicnt, rate, step, flag)
+            flag = False
+
+
+def single_replace(city, cicnt, ratio, step, fail_to_continue=False):
+    ratio = ratio * 1.0 / 100
+
+    folder_setup(city)
+    checkin, friends = data_process(city, cicnt)
+
+    defense_name = str(cicnt) + '_replace_' + str(int(ratio * 100)) + '_' + str(
+        int(step))
+
+    checkin = para_replace(city, defense_name, checkin, ratio, step)
+
+    ul_graph, lu_graph = ul_graph_build(checkin, 'locid')
+
+    model_name = str(cicnt) + '_locid_replace_' + str(
+        int(ratio * 100)) + '_' + str(int(step))
+
+    walk_len, walk_times = 100, 20  # maximal 100 walk_len, 20 walk_times
+
+    print('walking')
+    if not fail_to_continue:
+        para_ul_random_walk(city, model_name, checkin.uid.unique(), ul_graph,
+                            lu_graph,
+                            walk_len, walk_times)
+    print('walk done')
+
+    print('emb training')
+    emb_train(city, model_name)
+    print('emb training done')
+
+    feature_construct(city, model_name, friends)
+    unsuper_friends_predict(city, model_name)
+
+
+# multi_run('Brightkite', 20, [10, 30, 50, 70, 90])
+multi_replace('Brightkite', 20, [50, 70, 90], [15], True)
