@@ -1,10 +1,13 @@
 import multiprocessing as mp
 
+import time
 import pandas as pd
 import numpy as np
 from joblib import Parallel, delayed
 
 from gensim.models import word2vec
+
+CHUNK_SIZE = 10
 
 def ul_graph_build(checkin, loc_type):
     ''' build all the network
@@ -42,7 +45,7 @@ def para_ul_random_walk(city, model_name, ulist, ul_graph, lu_graph, walk_len, w
     Returns:
     '''
 
-    core_num = mp.cpu_count()
+    core_num = max(mp.cpu_count() - 1, 1)
     print(core_num)
     # do not use shared memory
     Parallel(n_jobs = core_num)(delayed(ul_random_walk_core)(\
@@ -83,6 +86,73 @@ def ul_random_walk_core(city, model_name, start_u, ul_graph, lu_graph, walk_len,
         pd.DataFrame(temp_walk).to_csv('dataset/'+city+'/emb/'+\
                                        city+'_'+model_name+'.walk',
                                        header=None, mode='a', index=False)
+
+
+def para_ul_random_batch(city, model_name, ulist, ul_graph, lu_graph, walk_len, walk_times):
+    ''' parallel random walk on user location network
+    Args:
+        city: city
+        model_name: 20_locid
+        ulist: user list
+        ul_graph, lu_graph: graph data (pandas df)
+        walk_len: walk length
+        walk_times: walk times
+    Returns:
+    '''
+    def chunks(l, n):
+        for i in range(0, len(l), n):
+            yield l[i: i + n]
+
+    core_num = mp.cpu_count()
+    print(core_num)
+    # do not use shared memory
+    chunk_ulist = list(chunks(ulist, CHUNK_SIZE))
+    Parallel(n_jobs = core_num)(delayed(ul_random_walk_batch)(\
+        city, model_name, us, ul_graph, lu_graph, walk_len, walk_times)
+                                for us in chunk_ulist)
+
+
+def ul_random_walk_batch(city, model_name, start_us, ul_graph, lu_graph, walk_len, walk_times):
+    ''' random walks from start_u on user location network
+    NOTE: one user per batch
+    Args:
+        city: city
+        model_name: 20_locid
+        start_u: starting user in a random walk
+        ul_graph, lu_graph: graph data (pandas df)
+        walk_len: walk length
+        walk_times: walk times
+    Returns:
+    '''
+
+    np.random.seed()
+    users = len(start_us)
+    temp_walk = np.zeros((users*walk_times, walk_len))# initialize random walk
+    t0 = time.time()
+    for user in range(users):
+        start_u = start_us[user]
+        first = user*walk_times
+        for i in range(walk_times):
+            temp_walk[first + i, 0] = start_u#
+            curr_u = start_u
+            flag = 0 # flag 0, user, flag 1, location
+            for j in range(walk_len-1):
+                if flag == 0:# at social network
+                    temp_val = ul_graph.loc[ul_graph.uid==curr_u]
+                    flag = 1
+                elif flag == 1: # at location
+                    temp_val = lu_graph.loc[lu_graph.locid==curr_u]
+                    flag = 0
+                # sample with weights
+                next_u = np.random.choice(temp_val['node2'].values, 1, p=temp_val['weight'])[0]
+                curr_u = next_u
+                if flag == 1: temp_walk[first + i, j + 1] = -next_u # location id is minus
+                else: temp_walk[first + i, j + 1] = next_u
+    pd.DataFrame(temp_walk).to_csv('dataset/'+city+'/emb/'+\
+                                    city+'_'+model_name+'.walk',
+                                    header=None, mode='a', index=False)
+    print('Finish %d users in %f sec' % (users, time.time() - t0))
+
 
 def emb_train(city, model_name, walk_len=100, walk_times=20, num_features=128):
     ''' train vector model

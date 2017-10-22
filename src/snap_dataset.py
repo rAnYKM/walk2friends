@@ -101,4 +101,4 @@ def dataset_summary(name):
 
 # gen_w2f_dataset(SNAP_DATASET_NAMES[1], 20, 0.01)
 # remap_locid("Gowalla_20")
-dataset_summary(SNAP_DATASET_NAMES[0])
+dataset_summary(SNAP_DATASET_NAMES[1])

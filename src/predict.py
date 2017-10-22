@@ -2,7 +2,7 @@ import os
 
 import pandas as pd
 import numpy as np
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, average_precision_score
 from scipy.spatial.distance import cosine, euclidean, correlation, chebyshev,\
     braycurtis, canberra, cityblock, sqeuclidean
 
@@ -103,14 +103,17 @@ def unsuper_friends_predict(city, model_name, walk_len=100, walk_times=20, num_f
                                    'braycurtis', 'canberra', 'cityblock', 'sqeuclidean'])
 
     auc_res = []
+    pre_res = []
     for i in ['cosine', 'euclidean', 'correlation', 'chebyshev',\
               'braycurtis', 'canberra', 'cityblock', 'sqeuclidean']:
         i_auc = roc_auc_score(feature.label, feature[i])
+        i_pre = average_precision_score(feature.label, feature[i])
         if i_auc < 0.5: i_auc = 1-i_auc
-        print(i, i_auc)
+        print(i, i_auc, i_pre)
         auc_res.append(i_auc)
+        pre_res.append(i_pre)
 
-    pd.DataFrame([auc_res],
+    pd.DataFrame([auc_res, pre_res],
                  columns=['cosine', 'euclidean', 'correlation', 'chebyshev',
                           'braycurtis', 'canberra', 'cityblock', 'sqeuclidean']).to_csv(
                  'dataset/'+city+'/result/'+city+'_'+model_name+'_'+
