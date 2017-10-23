@@ -5,14 +5,15 @@ import sys
 from process import folder_setup, data_process
 from emb import ul_graph_build, para_ul_random_walk, emb_train
 from predict import feature_construct, unsuper_friends_predict
+from ran_figure import load_test_scores
 
-city = "Gowalla"# ny la london Gowalla Brightkite
+city = "Brightkite"# ny la london Gowalla Brightkite
 cicnt = 20
 
 folder_setup(city)
 checkin, friends = data_process(city, cicnt)
 
-ul_graph, lu_graph = ul_graph_build(checkin, 'locid')
+# ul_graph, lu_graph = ul_graph_build(checkin, 'locid')
 
 model_name = str(cicnt) + '_locid'
 print(model_name)
@@ -25,8 +26,9 @@ print('walking')
 print('walk done')
 
 print('emb training')
-emb_train(city, model_name)
+#emb_train(city, model_name)
 print('emb training done')
 
-feature_construct(city, model_name, friends)
-unsuper_friends_predict(city, model_name)
+#feature_construct(city, model_name, friends)
+#unsuper_friends_predict(city, model_name)
+load_test_scores(city, model_name)

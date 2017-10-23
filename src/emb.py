@@ -7,7 +7,9 @@ from joblib import Parallel, delayed
 
 from gensim.models import word2vec
 
-CHUNK_SIZE = 10
+CHUNK_SIZE = 20
+
+total_done = 0
 
 def ul_graph_build(checkin, loc_type):
     ''' build all the network
@@ -107,9 +109,12 @@ def para_ul_random_batch(city, model_name, ulist, ul_graph, lu_graph, walk_len, 
     print(core_num)
     # do not use shared memory
     chunk_ulist = list(chunks(ulist, CHUNK_SIZE))
-    Parallel(n_jobs = core_num)(delayed(ul_random_walk_batch)(\
-        city, model_name, us, ul_graph, lu_graph, walk_len, walk_times)
-                                for us in chunk_ulist)
+    with Parallel(n_jobs = core_num) as parallel:
+        parallel(delayed(ul_random_walk_batch)(city, model_name, us,
+                                               ul_graph, lu_graph, walk_len,
+                                               walk_times)
+                         for us in chunk_ulist)
+
 
 
 def ul_random_walk_batch(city, model_name, start_us, ul_graph, lu_graph, walk_len, walk_times):
@@ -151,7 +156,11 @@ def ul_random_walk_batch(city, model_name, start_us, ul_graph, lu_graph, walk_le
     pd.DataFrame(temp_walk).to_csv('dataset/'+city+'/emb/'+\
                                     city+'_'+model_name+'.walk',
                                     header=None, mode='a', index=False)
-    print('Finish %d users in %f sec' % (users, time.time() - t0))
+    global total_done
+    total_done += users
+    print('Finish %d users in %f sec (current: %d)' % (users, time.time() -
+                                                       t0,
+                                                       total_done))
 
 
 def emb_train(city, model_name, walk_len=100, walk_times=20, num_features=128):

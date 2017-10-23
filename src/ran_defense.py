@@ -1,5 +1,6 @@
 import sys
 
+import pandas as pd
 from process import folder_setup, data_process
 from defense import para_hiding, para_replace
 from emb import ul_graph_build, para_ul_random_walk, emb_train
@@ -61,12 +62,20 @@ def single_replace(city, cicnt, ratio, step, fail_to_continue=False):
     defense_name = str(cicnt) + '_replace_' + str(int(ratio * 100)) + '_' + str(
         int(step))
 
-    checkin = para_replace(city, defense_name, checkin, ratio, step)
+    model_name = str(cicnt) + '_locid_replace_' + str(
+        int(ratio * 100)) + '_' + str(int(step))
+
+    if not fail_to_continue:
+        checkin = para_replace(city, defense_name, checkin, ratio, step)
+    else:
+        checkin = pd.read_csv('dataset/'+ city + '/defense/' + city + \
+                                              '_20_replace_'+
+                              str(int(ratio * 100)) + '_' + str(int(step)) +
+                              '.checkin')
 
     ul_graph, lu_graph = ul_graph_build(checkin, 'locid')
 
-    model_name = str(cicnt) + '_locid_replace_' + str(
-        int(ratio * 100)) + '_' + str(int(step))
+
 
     walk_len, walk_times = 100, 20  # maximal 100 walk_len, 20 walk_times
 
@@ -86,4 +95,4 @@ def single_replace(city, cicnt, ratio, step, fail_to_continue=False):
 
 
 # multi_run('Brightkite', 20, [10, 30, 50, 70, 90])
-multi_replace('Brightkite', 20, [50, 70, 90], [15], True)
+multi_replace('Brightkite', 20, [70, 90], [15], True)

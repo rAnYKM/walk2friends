@@ -104,12 +104,18 @@ def unsuper_friends_predict(city, model_name, walk_len=100, walk_times=20, num_f
 
     auc_res = []
     pre_res = []
+
+    # inverse the score
+
     for i in ['cosine', 'euclidean', 'correlation', 'chebyshev',\
               'braycurtis', 'canberra', 'cityblock', 'sqeuclidean']:
-        i_auc = roc_auc_score(feature.label, feature[i])
-        i_pre = average_precision_score(feature.label, feature[i])
-        if i_auc < 0.5: i_auc = 1-i_auc
+        max_score = max(feature[i])
+        new_feature = [1 - item/max_score for item in feature[i]]
+        i_auc = roc_auc_score(feature.label, new_feature)
+        i_pre = average_precision_score(feature.label, new_feature)
         print(i, i_auc, i_pre)
+        if i_auc < 0.5: 
+            i_auc = 1-i_auc
         auc_res.append(i_auc)
         pre_res.append(i_pre)
 
