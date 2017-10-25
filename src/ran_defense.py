@@ -3,7 +3,7 @@ import sys
 import pandas as pd
 from process import folder_setup, data_process
 from defense import para_hiding, para_replace
-from emb import ul_graph_build, para_ul_random_walk, emb_train
+from emb import ul_graph_build, para_ul_random_walk, emb_train, para_ul_random_batch
 from predict import feature_construct, unsuper_friends_predict
 
 # city = sys.argv[1]
@@ -81,7 +81,7 @@ def single_replace(city, cicnt, ratio, step, fail_to_continue=False):
 
     print('walking')
     if not fail_to_continue:
-        para_ul_random_walk(city, model_name, checkin.uid.unique(), ul_graph,
+        para_ul_random_batch(city, model_name, checkin.uid.unique(), ul_graph,
                             lu_graph,
                             walk_len, walk_times)
     print('walk done')
@@ -95,4 +95,4 @@ def single_replace(city, cicnt, ratio, step, fail_to_continue=False):
 
 
 # multi_run('Brightkite', 20, [10, 30, 50, 70, 90])
-multi_replace('Brightkite', 20, [70, 90], [15], True)
+multi_replace('ny', 20, [10, 30, 50, 70, 90], [15], False)
