@@ -3,6 +3,7 @@ import time
 import numpy as np
 import pandas as pd
 import networkx as nx
+from sklearn.cluster import KMeans
 
 # SNAP DIR
 SNAP_DATASET_DIR = "dataset/snap_raw"
@@ -12,6 +13,7 @@ CHECKIN_SUFFIX = "_totalCheckins.txt"
 
 #CONSTANT
 FZERO = 0.0000001
+
 
 def __checkin_process(line):
     items = line.strip().split('\t')
@@ -47,7 +49,7 @@ def load_snap_dataset(name):
 
 def gen_w2f_dataset(name, active_threshold, granularity):
     edges, checkins = load_snap_dataset(name)
-    print(edges)
+    # print(edges)
     checkins['counts'] = checkins.groupby(['user'])['user'].transform(np.size)
     # filter < active_threshold
     fil = checkins[checkins['counts'] >= active_threshold]
@@ -99,6 +101,39 @@ def dataset_summary(name):
     print(total_link)
 
 
+def gen_Kmeans_dataset(name, active_threshold, k):
+    edges, checkins = load_snap_dataset(name)
+    # print(edges)
+    checkins['counts'] = checkins.groupby(['user'])['user'].transform(np.size)
+    # filter < active_threshold
+    fil = checkins[checkins['counts'] >= active_threshold]
+    # k means
+    locations = list(zip(fil['latitude'], fil['longitude']))
+    fil['loc'] = KMeans(k, n_jobs=-1).fit_predict(locations)
+
+    # only keep location id, user
+    new_table = fil[['user', 'loc']]
+    print(len(pd.unique(new_table['loc'])))
+    print(new_table)
+
+    user_list = pd.unique(new_table['user'])
+    # new_edges = [{'u1': e[0], 'u2': e[1]} for e in edges
+    #              if e[0] in user_list and e[1] in user_list]
+
+    g = nx.DiGraph()
+    g.add_edges_from(edges)
+    sub = g.subgraph(user_list)
+    new_edges = [{'u1': e[0], 'u2': e[1]} for e in sub.edges()]
+
+    edge_table = pd.DataFrame(new_edges)
+    new_table.rename(columns={'user': 'uid', 'loc': 'locid'}, inplace=True)
+    new_table.to_csv('dataset/%s_%dM_%d.checkin' % (name, k, active_threshold))
+    edge_table.to_csv('dataset/%s_%dM_%d.friends' % (name, k, active_threshold),
+                      index=False)
+    print('done')
+
+
 # gen_w2f_dataset(SNAP_DATASET_NAMES[1], 20, 0.01)
 # remap_locid("Gowalla_20")
-dataset_summary(SNAP_DATASET_NAMES[1])
+gen_Kmeans_dataset(SNAP_DATASET_NAMES[0], 20, 20000)
+dataset_summary(SNAP_DATASET_NAMES[0] + '_20000M')
