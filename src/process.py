@@ -26,5 +26,6 @@ def data_process(city, cicnt):
 
     checkin = pd.read_csv('dataset/'+city+'_'+str(cicnt)+'.checkin')
     friends = pd.read_csv('dataset/'+city+'_'+str(cicnt)+'.friends')
+    friends = friends[['u1', 'u2']]
 
     return checkin, friends

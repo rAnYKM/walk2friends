@@ -42,4 +42,3 @@ def multi_eps(city, region, cicnt=20):
 
 if __name__ == '__main__':
     multi_eps('Gowalla', 'na', 20)
-    

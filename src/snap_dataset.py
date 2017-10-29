@@ -192,6 +192,19 @@ def dataset_summary(name):
     print(total_link)
 
 
+def check_friend_list(name):
+    checkin = pd.read_csv('dataset/%s_20.checkin' % name, index_col=0)
+    user_num = pd.unique(checkin['uid'])
+    friends = pd.read_csv('dataset/%s_20.friends' % name)
+    user = set(pd.unique(friends['u1'])) | set(pd.unique(friends['u2']))
+    count = 0
+    for u in user:
+        if u not in user_num:
+            count += 1
+
+    print(count)
+
+
 def gen_Kmeans_dataset(name, active_threshold, granularity, k):
     edges, checkins = load_snap_dataset(name)
     # print(edges)
@@ -241,9 +254,13 @@ def gen_Kmeans_dataset(name, active_threshold, granularity, k):
 # gen_Kmeans_dataset(SNAP_DATASET_NAMES[0], 20, 0.001, 10000)
 # dataset_summary(SNAP_DATASET_NAMES[0] + '_10000M')
 # region_dataset(SNAP_DATASET_NAMES[1], 20, 'na')
+"""
 for i in [5, 10, 15, 25, 30]:
     gen_region_w2f_dataset(SNAP_DATASET_NAMES[1], 20, 'na', 0.001,
                             {'model': 'DBSCAN',
                             'eps': i,
                             'min_samples': 1,
                             'n_jobs': -2})
+"""
+
+check_friend_list('Gowalla_na_5')
