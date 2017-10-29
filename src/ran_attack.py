@@ -8,7 +8,7 @@ from predict import feature_construct, unsuper_friends_predict
 from ran_figure import load_test_scores
 
 
-def single_run(city, cicnt=20)
+def single_run(city, cicnt=20):
     # city = "Brightkite"# ny la london Gowalla Brightkite
     # cicnt = 20
 
