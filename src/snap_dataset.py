@@ -13,6 +13,7 @@ CHECKIN_SUFFIX = "_totalCheckins.txt"
 
 #CONSTANT
 FZERO = 0.0000001
+KM_PER_RAD = 6371.0088
 
 #REGION
 REGIONS = {'na': [(9, -170), (71, -46)],
@@ -119,7 +120,8 @@ def region_dataset(name, active_threshold, region):
     print('done')
 
 
-def gen_region_w2f_dataset(name, active_threshold, region, granularity, clustering=None):
+def gen_region_w2f_dataset(name, active_threshold, region, granularity,
+                           par=None, clustering=None):
     fil = pd.read_csv(os.path.join(SNAP_DATASET_DIR,
                                    '_'.join([name,
                                              region,
@@ -133,15 +135,18 @@ def gen_region_w2f_dataset(name, active_threshold, region, granularity, clusteri
                                     + EDGE_SUFFIX))
     # apply granularity
     enlarge = 1 / granularity
-    fil.loc[:, 'latitude'] = fil.apply(lambda x: int(x['latitude'] * enlarge),
+    fil.loc[:, 'latitude'] = fil.apply(lambda x: int(x['latitude'] * enlarge)
+                                                 / enlarge,
                                         axis=1)
-    fil.loc[:, 'longitude'] = fil.apply(lambda x: int(x['longitude'] * enlarge),
+    fil.loc[:, 'longitude'] = fil.apply(lambda x: int(x['longitude'] *
+                                                      enlarge) / enlarge,
                                         axis=1)
     locs = set(zip(fil.latitude, fil.longitude))
     # location num
     print(len(locs))
 
-    par = 0
+    if par is None:
+        par = 0
 
     if clustering is None:
         aux = {loc: i for i, loc in enumerate(locs)}
@@ -150,14 +155,23 @@ def gen_region_w2f_dataset(name, active_threshold, region, granularity, clusteri
                                       axis=1)
 
     elif clustering['model'] == 'DBSCAN':
-        cluster = DBSCAN(clustering['eps'], clustering['min_samples'],
-                         n_jobs=clustering['n_jobs']).fit(list(locs))
-        aux = {loc: cluster.labels_[i] for i, loc in enumerate(locs)}
-        print(len(set(cluster.labels_)), len(pd.unique(fil['user'])))
+        loc_array = np.array(list(locs))
+        rads = np.radians(loc_array)
+        cluster = DBSCAN(clustering['eps'],
+                         clustering['min_samples'],
+                         metric='haversine',
+                         n_jobs=clustering['n_jobs']).fit(rads)
+        aux = {tuple(loc): cluster.labels_[i]
+               for i, loc in enumerate(loc_array)}
+        cs = list(set(cluster.labels_))
+        print(len(cs), max(cs), min(cs), len(pd.unique(fil['user'])))
         fil.loc[:, 'locid'] = fil.apply(lambda x: aux[(x['latitude'],
                                                        x['longitude'])],
                                       axis=1)
-        par = clustering['eps']
+        if par is None:
+            par = int(clustering['eps'] * KM_PER_RAD * 10)
+
+
 
     fil = fil[['user', 'locid']]
     fil.rename(columns={'user': 'uid'}, inplace=True)
@@ -168,7 +182,8 @@ def gen_region_w2f_dataset(name, active_threshold, region, granularity, clusteri
     edge.to_csv('dataset/%s_%s_%d_%d.friends' % (name,
                                                  region,
                                                  par,
-                                                 active_threshold))
+                                                 active_threshold),
+                index=False)
 
 
 
@@ -253,14 +268,16 @@ def gen_Kmeans_dataset(name, active_threshold, granularity, k):
 # remap_locid("Gowalla_20")
 # gen_Kmeans_dataset(SNAP_DATASET_NAMES[0], 20, 0.001, 10000)
 # dataset_summary(SNAP_DATASET_NAMES[0] + '_10000M')
-# region_dataset(SNAP_DATASET_NAMES[1], 20, 'na')
 """
-for i in [5, 10, 15, 25, 30]:
-    gen_region_w2f_dataset(SNAP_DATASET_NAMES[1], 20, 'na', 0.001,
+region_dataset(SNAP_DATASET_NAMES[0], 20, 'na')
+
+for i in [0.5, 1, 1.5, 2, 2.5, 3]:
+    gen_region_w2f_dataset(SNAP_DATASET_NAMES[0], 20, 'na', 0.01, i*10,
                             {'model': 'DBSCAN',
-                            'eps': i,
+                            'eps': i / KM_PER_RAD,
                             'min_samples': 1,
-                            'n_jobs': -2})
+                            'n_jobs': -1},
+                           )
 """
 
-check_friend_list('Gowalla_na_5')
+dataset_summary('Gowalla_na_30')

@@ -36,9 +36,9 @@ def single_run(city, cicnt=20):
     # load_test_scores(city, model_name)
 
 def multi_eps(city, region, cicnt=20):
-    for eps in [5, 10, 15, 20, 25, 30]:
+    for eps in [5, 10, 15, 20, 25]:
         single_run(city + '_' + region + '_' + str(eps), cicnt)
 
 
 if __name__ == '__main__':
-    multi_eps('Gowalla', 'na', 20)
+    multi_eps('Brightkite', 'na', 20)
