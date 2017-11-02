@@ -268,16 +268,16 @@ def gen_Kmeans_dataset(name, active_threshold, granularity, k):
 # remap_locid("Gowalla_20")
 # gen_Kmeans_dataset(SNAP_DATASET_NAMES[0], 20, 0.001, 10000)
 # dataset_summary(SNAP_DATASET_NAMES[0] + '_10000M')
-"""
-region_dataset(SNAP_DATASET_NAMES[0], 20, 'na')
 
-for i in [0.5, 1, 1.5, 2, 2.5, 3]:
+# region_dataset(SNAP_DATASET_NAMES[0], 20, 'na')
+
+for i in [4, 5, 6, 7, 8, 9, 10]:
     gen_region_w2f_dataset(SNAP_DATASET_NAMES[0], 20, 'na', 0.01, i*10,
                             {'model': 'DBSCAN',
                             'eps': i / KM_PER_RAD,
                             'min_samples': 1,
                             'n_jobs': -1},
                            )
-"""
 
-dataset_summary('Gowalla_na_30')
+
+# dataset_summary('Gowalla_na_30')
