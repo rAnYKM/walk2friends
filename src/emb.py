@@ -47,7 +47,7 @@ def para_ul_random_walk(city, model_name, ulist, ul_graph, lu_graph, walk_len, w
     Returns:
     '''
 
-    core_num = max(mp.cpu_count() - 1, 1)
+    core_num = mp.cpu_count()
     print(core_num)
     # do not use shared memory
     Parallel(n_jobs = core_num)(delayed(ul_random_walk_core)(\
