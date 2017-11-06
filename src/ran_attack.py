@@ -54,7 +54,7 @@ def walk_parameter_experiment(city, cicnt, walk_lens, walk_times, ns,
 if __name__ == '__main__':
     # multi_eps('Brightkite', 'na', 20)
     wls = [10, 12, 14, 16, 18, 20, 30, 40, 50, 60, 70, 80 ,90, 100, 110, 120]
-    wts = [30]
+    wts = [20]
     np = [128]
-    walk_parameter_experiment('Brightkite', 20, wls, wts, np, True)
+    walk_parameter_experiment('Gowalla', 20, wls, wts, np, False)
 

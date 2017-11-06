@@ -2,12 +2,45 @@ import sys
 
 import pandas as pd
 from process import folder_setup, data_process
-from defense import para_hiding, para_replace
+from defense import para_hiding, para_replace, para_top_hiding
 from emb import ul_graph_build, para_ul_random_walk, emb_train, para_ul_random_batch
 from predict import feature_construct, unsuper_friends_predict
 
 # city = sys.argv[1]
 # cicnt = int(sys.argv[2])
+
+def single_top_run(city, cicnt, ratio, N):
+    ratio = ratio*1.0/100
+    folder_setup(city)
+    checkin, friends = data_process(city, cicnt)
+
+    defense_name = str(cicnt) + '_top_hiding_' + str(int(ratio * 100)) + '_' \
+                   + str(N)
+    print(defense_name)
+
+    checkin = para_top_hiding(city, defense_name, checkin, ratio, N)
+
+    ul_graph, lu_graph = ul_graph_build(checkin, 'locid')
+
+    model_name = str(cicnt) + '_locid_top_hiding_' + str(int(ratio * 100)) + \
+                 '_' + str(N)
+    print(model_name)
+
+    walk_len, walk_times = 100, 20  # maximal 100 walk_len, 20 walk_times
+
+    print('walking')
+    para_ul_random_walk(city, model_name, checkin.uid.unique(), ul_graph,
+                        lu_graph,
+                        walk_len, walk_times)
+    print('walk done')
+
+    print('emb training')
+    emb_train(city, model_name)
+    print('emb training done')
+
+    feature_construct(city, model_name, friends)
+    unsuper_friends_predict(city, model_name)
+
 
 def multi_run(city, cicnt, ratios):
     for ratio in ratios:
@@ -43,7 +76,6 @@ def single_run(city, cicnt, ratio):
 
     feature_construct(city, model_name, friends)
     unsuper_friends_predict(city, model_name)
-
 
 def multi_replace(city, cicnt, ratios, steps, fail_to_continue):
     flag = fail_to_continue
@@ -95,4 +127,5 @@ def single_replace(city, cicnt, ratio, step, fail_to_continue=False):
 
 
 # multi_run('Brightkite', 20, [10, 30, 50, 70, 90])
-multi_replace('ny', 20, [10, 30, 50, 70, 90], [15], False)
+# multi_replace('ny', 20, [10, 30, 50, 70, 90], [15], False)
+single_top_run('Brightkite', 20, 30, 10)
