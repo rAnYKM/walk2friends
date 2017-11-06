@@ -3,6 +3,7 @@ import time
 import numpy as np
 import pandas as pd
 import networkx as nx
+from collections import Counter
 from sklearn.cluster import KMeans, DBSCAN
 
 # SNAP DIR
@@ -207,6 +208,50 @@ def dataset_summary(name):
     print(total_link)
 
 
+def common_place_distribution(name):
+    checkin = pd.read_csv('dataset/%s_20.checkin' % name, index_col=0)
+    friends = pd.read_csv('dataset/%s_20.friends' % name)
+    uid = pd.unique(checkin['uid'])
+    locid = pd.unique(checkin['locid'])
+    muid = max(uid) + 1
+    checkin.loc[:, 'loc'] = checkin.apply(lambda x: x['locid'] + muid,
+                                          axis=1)
+    g = nx.from_pandas_dataframe(checkin, 'uid', 'loc')
+    fr = nx.from_pandas_dataframe(friends, 'u1', 'u2')
+
+    ran_commons = []
+    ct = 0
+    nu = len(uid)
+    # sampling
+    samples = 1000000
+    n1 = np.random.choice(uid, samples*4)
+    n2 = np.random.choice(uid, samples*4)
+    pairs = set([(n1[i], n2[i]) for i in range(samples*4)
+                 if n1[i] < n2[i]])
+    pair = list(pairs)[:samples]
+    print(len(pairs), len(pair))
+
+    for e in pair:
+        u, v = e
+        common = len(list(nx.common_neighbors(g, u, v)))
+        ran_commons.append(common)
+    rcom_counter = Counter(ran_commons)
+
+
+    fri_commons = []
+    for e in fr.edges():
+        u, v = e
+        common = len(list(nx.common_neighbors(g, u, v)))
+        fri_commons.append(common)
+
+    fcom_counter = Counter(fri_commons)
+
+    print([rcom_counter[i]/samples for i in range(13)])
+
+    print([fcom_counter[i]/fr.number_of_edges() for i in range(13)])
+
+
+
 def check_friend_list(name):
     checkin = pd.read_csv('dataset/%s_20.checkin' % name, index_col=0)
     user_num = pd.unique(checkin['uid'])
@@ -270,14 +315,15 @@ def gen_Kmeans_dataset(name, active_threshold, granularity, k):
 # dataset_summary(SNAP_DATASET_NAMES[0] + '_10000M')
 
 # region_dataset(SNAP_DATASET_NAMES[0], 20, 'na')
-
-for i in [4, 5, 6, 7, 8, 9, 10]:
+"""
+for i in [1, 2, 8]:
     gen_region_w2f_dataset(SNAP_DATASET_NAMES[0], 20, 'na', 0.01, i*10,
                             {'model': 'DBSCAN',
                             'eps': i / KM_PER_RAD,
                             'min_samples': 1,
                             'n_jobs': -1},
                            )
-
+"""
 
 # dataset_summary('Gowalla_na_30')
+common_place_distribution('Brightkite_na_80')
