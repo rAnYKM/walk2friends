@@ -208,6 +208,22 @@ def dataset_summary(name):
     print(total_link)
 
 
+def place_checkin_distribution(name):
+    checkin = pd.read_csv('dataset/%s_20.checkin' % name, index_col=0)
+    nc = checkin.groupby(['locid']).size().reset_index(name='counts')
+    total = max(nc.counts)
+    nc.loc[:, 'ncount'] = nc.apply(lambda x: np.log10(x['counts']/total),
+                                   axis=1)
+    nc.to_csv('%s_pcd.csv' % name)
+
+
+def place_user_distribution(name):
+    checkin = pd.read_csv('dataset/%s_20.checkin' % name, index_col=0)
+    nc = checkin.drop_duplicates(['uid','locid'])
+    nc = nc.groupby(['locid']).size().reset_index(name='counts')
+    nc.to_csv('%s_pud.csv' % name)
+
+
 def common_place_distribution(name):
     checkin = pd.read_csv('dataset/%s_20.checkin' % name, index_col=0)
     friends = pd.read_csv('dataset/%s_20.friends' % name)
@@ -326,4 +342,6 @@ for i in [1, 2, 8]:
 """
 
 # dataset_summary('Gowalla_na_30')
-common_place_distribution('Brightkite_na_80')
+# common_place_distribution('Brightkite_na_80')
+# place_checkin_distribution('Brightkite_na_80')
+place_user_distribution('la')
