@@ -2,12 +2,42 @@ import sys
 
 import pandas as pd
 from process import folder_setup, data_process
-from defense import para_hiding, para_replace, para_top_hiding
+from defense import para_hiding, para_replace, para_top_hiding, extreme_balance
 from emb import ul_graph_build, para_ul_random_walk, emb_train, para_ul_random_batch
 from predict import feature_construct, unsuper_friends_predict
 
 # city = sys.argv[1]
 # cicnt = int(sys.argv[2])
+
+def single_ex_run(city, cicnt):
+
+    folder_setup(city)
+    checkin, friends = data_process(city, cicnt)
+
+    defense_name = str(cicnt) + '_ex'
+    print(defense_name)
+
+    checkin = extreme_balance(city, defense_name, checkin)
+
+    ul_graph, lu_graph = ul_graph_build(checkin, 'locid')
+
+    model_name = str(cicnt) + '_locid_ex'
+    print(model_name)
+
+    walk_len, walk_times = 100, 20  # maximal 100 walk_len, 20 walk_times
+
+    print('walking')
+    para_ul_random_walk(city, model_name, checkin.uid.unique(), ul_graph,
+                        lu_graph,
+                        walk_len, walk_times)
+    print('walk done')
+
+    print('emb training')
+    emb_train(city, model_name)
+    print('emb training done')
+
+    feature_construct(city, model_name, friends)
+    unsuper_friends_predict(city, model_name)
 
 def single_top_run(city, cicnt, ratio, N):
     ratio = ratio*1.0/100
@@ -128,4 +158,5 @@ def single_replace(city, cicnt, ratio, step, fail_to_continue=False):
 
 # multi_run('Brightkite', 20, [10, 30, 50, 70, 90])
 # multi_replace('ny', 20, [10, 30, 50, 70, 90], [15], False)
-single_top_run('Brightkite', 20, 30, 10)
+if __name__ == '__main__':
+    single_ex_run('Brightkite', 20)

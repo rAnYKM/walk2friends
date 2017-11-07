@@ -7,6 +7,15 @@ from joblib import Parallel, delayed
 from emb import ul_graph_build
 
 
+def extreme_balance(city, defense_name, u_checkin):
+    u_checkin.drop_duplicates(subset=['uid', 'locid'], inplace=True)
+    u_checkin.to_csv(
+        'dataset/' + city + '/defense/' + city + '_' + defense_name + '.checkin',
+        index=False)
+
+    return u_checkin
+
+
 def top_hiding_core(city, defense_name, u_checkin, ratio, N):
     """
     Top N Locations Hiding
