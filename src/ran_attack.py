@@ -20,7 +20,7 @@ def single_run(city, cicnt=20, wl=100, wt=20, n_feature=128, new_run=False):
     model_name = str(cicnt) + '_locid'
     print(model_name)
 
-    walk_len, walk_times = 120, 30 # maximal 100 walk_len, 20 walk_times
+    walk_len, walk_times = 100, 20 # maximal 100 walk_len, 20 walk_times
 
     print('walking')
     if new_run:
@@ -53,8 +53,11 @@ def walk_parameter_experiment(city, cicnt, walk_lens, walk_times, ns,
 
 if __name__ == '__main__':
     # multi_eps('Brightkite', 'na', 20)
-    wls = [10, 12, 14, 16, 18, 20, 30, 40, 50, 60, 70, 80 ,90, 100, 110, 120]
-    wts = [20]
-    np = [128]
-    walk_parameter_experiment('Gowalla', 20, wls, wts, np, False)
+    wls = [10, 12, 14, 16, 18, 20, 30, 40, 50, 60, 70, 80 ,90, 100]
+    wts = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+    np = [8, 16, 32, 64, 128, 256]
+    dataset = sys.argv[1]
+    walk_parameter_experiment(dataset, 20, wls, [20], [128], False)
+    walk_parameter_experiment(dataset, 20, [100], wts, [128], False)
+    walk_parameter_experiment(dataset, 20, [100], [20], np, False)
 

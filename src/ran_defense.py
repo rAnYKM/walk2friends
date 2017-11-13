@@ -159,4 +159,4 @@ def single_replace(city, cicnt, ratio, step, fail_to_continue=False):
 # multi_run('Brightkite', 20, [10, 30, 50, 70, 90])
 # multi_replace('ny', 20, [10, 30, 50, 70, 90], [15], False)
 if __name__ == '__main__':
-    single_ex_run('Brightkite', 20)
+    single_ex_run('la', 20)
