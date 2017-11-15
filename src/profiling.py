@@ -1,10 +1,13 @@
+import os
+
+import tau
 import numpy as np
 import pandas as pd
 import networkx as nx
 
 from process import folder_setup, data_process
 from emb import ul_graph_build, para_ul_random_walk, para_ul_random_batch
-
+from emb import ul_random_walk_core 
 
 def workload_gen(num_user, num_location, loc_per_user=20, density=1e-2):
     locs = list(range(num_location))
@@ -44,9 +47,11 @@ def single_random_walk(num_user, num_location):
     walk_len, walk_times = 50, 10 # maximal 100 walk_len, 20 walk_times
 
     print('walking')
-    para_ul_random_walk(city, model_name, checkin.uid.unique(),
-                         ul_graph, lu_graph, walk_len, walk_times)
+    for uid in checkin.uid.unique():
+        ul_random_walk_core(city, model_name, uid, ul_graph,
+                            lu_graph, walk_len, walk_times) 
     print('walk done')
+
 
 
 def batch_random_walk(num_user, num_location):
@@ -68,5 +73,6 @@ def batch_random_walk(num_user, num_location):
     print('walk done')
 
 if __name__ == '__main__':
-    workload_gen(200, 200, 20, 1e-2)
-    batch_random_walk(200, 200)
+    #workload_gen(200, 200, 20, 1e-2)
+    tau.run('single_random_walk(200, 200)')
+
