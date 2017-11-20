@@ -4,7 +4,7 @@ import logging
 import numpy as np
 import pandas as pd
 import networkx as nx
-
+import matplotlib.pyplot as plt
 
 FORMAT = '%(asctime)-15s %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
@@ -62,6 +62,37 @@ class LBSDataManager:
         print('location shared by only two people: %d/%d' %
               (len(lso2nf), len(lso2p)))
 
+    def friend_no_common(self):
+        # if two users are friend, but they do not have common locations
+        fnc = [e for e, comm in self.friend_common_locs().items() if not comm]
+        uni_locs = [] # unique locations
+        uni_locs_max = []
+        ff = [] # frequent
+        for e in fnc:
+            u, v = e
+            # Do they check in a lot of unique locations?
+            u_locs = self.ul_graph.neighbors(u)
+            v_locs = self.ul_graph.neighbors(v)
+            num_u = len(u_locs)
+            num_v = len(v_locs)
+            uni_locs.append(min(num_u, num_v))
+            # familiar faces
+            ff.append(u)
+            ff.append(v)
+
+        ## min unique locations
+        ## pd.Series(uni_locs).plot.hist(bins=50, xlim=[0, 40])
+        fft = pd.Series(ff).value_counts()
+        fftb = pd.DataFrame({'user': fft.index, 'count': fft.values})
+        fftb.loc[:, 'friend'] = fftb.apply(lambda x:
+                                           len(self.uu_graph.neighbors(
+                                               x['user']
+                                           )),
+                                           axis=1)
+        fftb.loc[:, 'percent'] = fftb['count']/fftb['friend']
+        fftb = fftb[['user', 'count', 'friend', 'percent']]
+        return fftb
+
 
     def basic_summary(self):
         print('Users: %d, Locations: %d, Friend pairs: %d' %
@@ -103,7 +134,9 @@ def check_w2f_dataset(dataset, cicnt):
     wd.basic_summary()
     logging.debug('load LBS data in %f second(s)' % (time.time() - t0))
     # print(wd.friend_common_locs())
-    wd.common_loc_study()
+    # wd.common_loc_study()
+    table = wd.friend_no_common()
+    table.to_csv('%s_friend_no_common.csv' % dataset, index=False)
 
 if __name__ == '__main__':
-    check_w2f_dataset('london', 20)
+    check_w2f_dataset('Gowalla', 20)
