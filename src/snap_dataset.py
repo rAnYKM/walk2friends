@@ -263,9 +263,7 @@ def common_place_distribution(name):
     fcom_counter = Counter(fri_commons)
 
     print([rcom_counter[i]/samples for i in range(13)])
-
     print([fcom_counter[i]/fr.number_of_edges() for i in range(13)])
-
 
 
 def check_friend_list(name):
@@ -281,53 +279,8 @@ def check_friend_list(name):
     print(count)
 
 
-def gen_Kmeans_dataset(name, active_threshold, granularity, k):
-    edges, checkins = load_snap_dataset(name)
-    # print(edges)
-    checkins['counts'] = checkins.groupby(['user'])['user'].transform(np.size)
-    # filter < active_threshold
-    fil = checkins[checkins['counts'] >= active_threshold]
-    # k means
-    # locations = list(zip(fil['latitude'], fil['longitude']))
-    # fil['loc'] = KMeans(k, n_jobs=-1).fit_predict(locations)
-
-    # apply granularity
-    enlarge = 1 / granularity
-    fil['latitude'] = fil.apply(lambda x:int(x['latitude'] * enlarge),
-                                axis=1)
-    fil['longitude'] = fil.apply(lambda x: int(x['longitude'] * enlarge),
-                                 axis=1)
-    locs = list(zip(fil.latitude, fil.longitude))
-    print(len(locs))
-    print('here')
-    # fil['loc'] = DBSCAN(eps=1, min_samples=100, n_jobs=-1).fit_predict(locs)
-    fil['loc'] = KMeans(20, n_jobs=-1).fit_predict(locs)
-
-    # only keep location id, user
-    new_table = fil[['user', 'loc']]
-    print(len(pd.unique(new_table['loc'])))
-    print(new_table)
-
-    user_list = pd.unique(new_table['user'])
-    # new_edges = [{'u1': e[0], 'u2': e[1]} for e in edges
-    #              if e[0] in user_list and e[1] in user_list]
-
-    g = nx.DiGraph()
-    g.add_edges_from(edges)
-    sub = g.subgraph(user_list)
-    new_edges = [{'u1': e[0], 'u2': e[1]} for e in sub.edges()]
-
-    edge_table = pd.DataFrame(new_edges)
-    new_table.rename(columns={'user': 'uid', 'loc': 'locid'}, inplace=True)
-    new_table.to_csv('dataset/%s_%dM_%d.checkin' % (name, k, active_threshold))
-    edge_table.to_csv('dataset/%s_%dM_%d.friends' % (name, k, active_threshold),
-                      index=False)
-    print('done')
-
-
 # gen_w2f_dataset(SNAP_DATASET_NAMES[1], 20, 0.01)
 # remap_locid("Gowalla_20")
-# gen_Kmeans_dataset(SNAP_DATASET_NAMES[0], 20, 0.001, 10000)
 # dataset_summary(SNAP_DATASET_NAMES[0] + '_10000M')
 
 # region_dataset(SNAP_DATASET_NAMES[0], 20, 'na')
