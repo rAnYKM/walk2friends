@@ -93,6 +93,26 @@ class LBSDataManager:
         fftb = fftb[['user', 'count', 'friend', 'percent']]
         return fftb
 
+    def friend_with_common(self):
+        proportion = []
+        location_set = set()
+        for e, comm in self.friend_common_locs().items():
+            u, v = e
+            loc_u = len(self.ul_graph.neighbors(u))
+            loc_v = len(self.ul_graph.neighbors(v))
+            # proportion.append({'edge': e,
+            #                    'percent': len(comm)/min(loc_u, loc_v)})
+            location_set |= set(comm)
+        location_heat = [{'locid': loc,
+                          'heat': np.log10(len(self.ul_graph.neighbors(loc)))}
+                         for loc in location_set]
+        location_table = pd.DataFrame(location_heat)
+        print(location_table)
+        location_table.heat.plot.hist(bins=30)
+        plt.show()
+        # pro_table = pd.DataFrame(proportion)
+        # pro_table.plot.hist(bins=50)
+        # plt.show()
 
     def basic_summary(self):
         print('Users: %d, Locations: %d, Friend pairs: %d' %
@@ -135,8 +155,9 @@ def check_w2f_dataset(dataset, cicnt):
     logging.debug('load LBS data in %f second(s)' % (time.time() - t0))
     # print(wd.friend_common_locs())
     # wd.common_loc_study()
-    table = wd.friend_no_common()
-    table.to_csv('%s_friend_no_common.csv' % dataset, index=False)
+    # table = wd.friend_no_common()
+    # table.to_csv('%s_friend_no_common.csv' % dataset, index=False)
+    wd.friend_with_common()
 
 if __name__ == '__main__':
-    check_w2f_dataset('Gowalla', 20)
+    check_w2f_dataset('Brightkite', 20)
