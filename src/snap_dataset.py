@@ -33,7 +33,8 @@ def __checkin_process(line):
             #'time': time.mktime(time.strptime(items[1], "%Y-%m-%dT%H:%M:%SZ")),
             'latitude': float(items[2]),
             'longitude': float(items[3]),
-            'location': items[4]}
+            # 'location': items[4]
+            }
 
 
 def load_snap_dataset(name):
@@ -85,6 +86,72 @@ def gen_w2f_dataset(name, active_threshold, granularity):
     edge_table.to_csv('dataset/%s_%d.friends' % (name, active_threshold),
                       index=False)
     print('done')
+
+
+def gen_w2f__cluster_dataset(name, active_threshold, granularity,
+                           par=None, clustering=None):
+    edges, checkins = load_snap_dataset(name)
+    # print(edges)
+    checkins['counts'] = checkins.groupby(['user'])['user'].transform(np.size)
+    # filter < active_threshold
+    fil = checkins[checkins['counts'] >= active_threshold]
+    # apply granularity
+    enlarge = 1 / granularity
+    fil.loc[:, 'latitude'] = fil.apply(lambda x: int(x['latitude'] * enlarge)
+                                                 / enlarge,
+                                        axis=1)
+    fil.loc[:, 'longitude'] = fil.apply(lambda x: int(x['longitude'] *
+                                                      enlarge) / enlarge,
+                                        axis=1)
+    locs = set(zip(fil.latitude, fil.longitude))
+    # location num
+    print(len(locs))
+
+    if par is None:
+        par = 0
+
+    if clustering is None:
+        aux = {loc: i for i, loc in enumerate(locs)}
+        fil.loc[:, 'locid'] = fil.apply(lambda x: aux[(x['latitude'],
+                                                       x['longitude'])],
+                                      axis=1)
+
+    elif clustering['model'] == 'DBSCAN':
+        loc_array = np.array(list(locs))
+        rads = np.radians(loc_array)
+        cluster = DBSCAN(clustering['eps'],
+                         clustering['min_samples'],
+                         metric='haversine',
+                         n_jobs=clustering['n_jobs']).fit(rads)
+        aux = {tuple(loc): cluster.labels_[i]
+               for i, loc in enumerate(loc_array)}
+        cs = list(set(cluster.labels_))
+        print(len(cs), max(cs), min(cs), len(pd.unique(fil['user'])))
+        fil.loc[:, 'locid'] = fil.apply(lambda x: aux[(x['latitude'],
+                                                       x['longitude'])],
+                                      axis=1)
+        if par is None:
+            par = int(clustering['eps'] * KM_PER_RAD * 10)
+
+    user_list = pd.unique(fil['user'])
+    g = nx.DiGraph()
+    g.add_edges_from(edges)
+    sub = g.subgraph(user_list)
+    new_edges = [{'u1': e[0], 'u2': e[1]} for e in sub.edges()]
+
+    edge = pd.DataFrame(new_edges)
+    print('done')
+
+    fil = fil[['user', 'locid']]
+    fil.rename(columns={'user': 'uid'}, inplace=True)
+    fil.to_csv('dataset/%s_cluster_%d_%d.checkin' % (name,
+                                             par,
+                                             active_threshold))
+    edge.to_csv('dataset/%s_cluster_%d_%d.friends' % (name,
+                                              par,
+                                              active_threshold),
+                index=False)
+
 
 
 def region_dataset(name, active_threshold, region):
@@ -293,8 +360,16 @@ for i in [1, 2, 8]:
                             'n_jobs': -1},
                            )
 """
+for i in [0.5, 1, 2, 4, 8, 16]:
+    gen_w2f__cluster_dataset(SNAP_DATASET_NAMES[1], 20, 0.01, i*10,
+                             {'model': 'DBSCAN',
+                              'eps': i / KM_PER_RAD,
+                              'min_samples': 1,
+                              'n_jobs': -1},
+                             )
+
 
 # dataset_summary('Gowalla_na_30')
 # common_place_distribution('Brightkite_na_80')
 # place_checkin_distribution('Brightkite_na_80')
-place_user_distribution('la')
+# place_user_distribution('la')

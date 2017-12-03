@@ -73,6 +73,6 @@ def batch_random_walk(num_user, num_location):
     print('walk done')
 
 if __name__ == '__main__':
-    #workload_gen(200, 200, 20, 1e-2)
-    tau.run('single_random_walk(200, 200)')
+    workload_gen(500, 500, 20, 1e-2)
+    tau.run('single_random_walk(500, 500)')
 

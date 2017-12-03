@@ -53,6 +53,7 @@ def walk_parameter_experiment(city, cicnt, walk_lens, walk_times, ns,
 
 if __name__ == '__main__':
     # multi_eps('Brightkite', 'na', 20)
+    """
     wls = [10, 12, 14, 16, 18, 20, 30, 40, 50, 60, 70, 80 ,90, 100]
     wts = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
     np = [8, 16, 32, 64, 128, 256]
@@ -60,4 +61,7 @@ if __name__ == '__main__':
     walk_parameter_experiment(dataset, 20, wls, [20], [128], False)
     walk_parameter_experiment(dataset, 20, [100], wts, [128], False)
     walk_parameter_experiment(dataset, 20, [100], [20], np, False)
-
+    """
+    dataset = sys.argv[1]
+    rad = int(sys.argv[2])
+    single_run(dataset + '_cluster_' +str(rad), 20, 100, 20, 128, True)

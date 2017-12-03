@@ -27,7 +27,7 @@ def single_ex_run(city, cicnt):
     walk_len, walk_times = 100, 20  # maximal 100 walk_len, 20 walk_times
 
     print('walking')
-    para_ul_random_walk(city, model_name, checkin.uid.unique(), ul_graph,
+    para_ul_random_batch(city, model_name, checkin.uid.unique(), ul_graph,
                         lu_graph,
                         walk_len, walk_times)
     print('walk done')
@@ -159,4 +159,4 @@ def single_replace(city, cicnt, ratio, step, fail_to_continue=False):
 # multi_run('Brightkite', 20, [10, 30, 50, 70, 90])
 # multi_replace('ny', 20, [10, 30, 50, 70, 90], [15], False)
 if __name__ == '__main__':
-    single_ex_run('la', 20)
+    single_ex_run('london', 20)
